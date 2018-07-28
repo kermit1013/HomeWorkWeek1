@@ -1,0 +1,36 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="jumbotron">
+    <h1> Login Page</h1>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        @using (Html.BeginForm("Login", "Login"))
+        {
+            <input type="text" name="account"   />
+            @Html.Password("password", "")
+            <button>登入</button>
+        }
+       
+    </div>
+</div>
+
+@functions{
+    public static string GetUserData()
+    {
+        if (HttpContext.Current.User.Identity.IsAuthenticated)
+        {
+            FormsIdentity id = HttpContext.Current.User.Identity as FormsIdentity;
+
+            FormsAuthenticationTicket ticket = id.Ticket;
+
+            string userInfo = id.Ticket.UserData;
+
+            return userInfo;
+        }
+        return "";
+    }
+}

@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Entity;
+using System.Data.Entity.Validation;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
 using System.Web.Mvc;
 using ClosedXML.Excel;
+using HomeWorkWeek1.ActionFilter;
 using HomeWorkWeek1.Models;
+using X.PagedList;
 
 namespace HomeWorkWeek1.Controllers
 {
@@ -17,14 +20,15 @@ namespace HomeWorkWeek1.Controllers
         客戶聯絡人Repository repo = RepositoryHelper.Get客戶聯絡人Repository();
         
         private Entities db = new Entities();
-
+        private int pageSize = 5;
         // GET: 客戶聯絡人
-        public ActionResult Index()
+        [LogActionFilterAttribute]
+        public ActionResult Index(int Page = 1)
         {
             var dropdown = repo.All().Distinct();
             SelectList selectlist = new SelectList(dropdown, "職稱", "職稱");
             ViewBag.selectlist = selectlist;
-            return View(repo.All().ToList());
+            return View(repo.All().OrderBy(p => p.Id).ToPagedList(Page, pageSize));
         }
 
         // GET: 客戶聯絡人/Details/5
@@ -182,5 +186,37 @@ namespace HomeWorkWeek1.Controllers
             }
             base.Dispose(disposing);
         }
+        [HttpPost]
+        [LogActionFilterAttribute]
+        [Route("BatchUpdate")]
+        [HandleError(ExceptionType = typeof(DbEntityValidationException), View = "Error_DbEntityValidationException")]
+        public ActionResult BatchUpdate(聯絡人BatchVM[] data)
+        { 
+
+            if (ModelState.IsValid)
+            {
+                foreach (var vm in data)
+                {
+                    var 客戶聯絡人 = db.客戶聯絡人.Find(vm.Id);
+                    客戶聯絡人.職稱 = vm.職稱;
+                    客戶聯絡人.手機 = vm.手機;
+                    客戶聯絡人.電話 = vm.電話;
+                }
+
+                
+                db.SaveChanges();
+                
+                return RedirectToAction("Index");
+            }
+
+            ViewData.Model = repo.All().Take(10);
+            var dropdown = repo.All().Distinct();
+            SelectList selectlist = new SelectList(dropdown, "職稱", "職稱");
+            ViewBag.selectlist = selectlist;
+            return View("Index");
+        }
+
+
+
     }
 }

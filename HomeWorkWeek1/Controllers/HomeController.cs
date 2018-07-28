@@ -11,6 +11,7 @@ namespace HomeWorkWeek1.Controllers
     public class HomeController : Controller
     {
         private Entities db = new Entities();
+        [Authorize]
         public ActionResult Index()
         {
   
